@@ -10,7 +10,7 @@ This is a simple pet helpfully application powered by Nest JS.
 
 ## Services.
 
-- ### Authorizations.
+- ### Authentications.
 
   - [x] Join.
   - [x] Login.
