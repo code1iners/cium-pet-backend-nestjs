@@ -6,12 +6,12 @@ import {
 import { Request, Response } from 'express';
 
 @Injectable()
-export class JwtMiddleware implements NestMiddleware {
+export class AuthMiddleware implements NestMiddleware {
   use(req: Request, _: Response, next: (error?: any) => void) {
-    console.log(process.env.NODE_ENV);
-
-    if (!req.session.loggedInUser)
+    const isLocalEnvironment = process.env.NODE_ENV === 'local';
+    if (!req.session.loggedInUser && !isLocalEnvironment) {
       throw new UnauthorizedException('로그인이 필요합니다.');
+    }
 
     next();
   }
