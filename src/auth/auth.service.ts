@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { AuthJoinDto } from '@/auth/dtos/auth-join.dto';
 import { PrismaService } from '@/libs/prisma.service';
@@ -63,7 +63,7 @@ export class AuthService {
     };
   }
 
-  async login(email: string, password: string) {
+  async loginUser(email: string, password: string) {
     let foundUser = undefined;
     try {
       foundUser = await this.prisma.user.findUnique({
@@ -145,6 +145,33 @@ export class AuthService {
         accessToken: `Bearer ${accessToken}`,
       },
     };
+  }
+
+  async logoutUser(id: number) {
+    try {
+      const { refreshToken } = await this.prisma.user.update({
+        where: { id },
+        data: { refreshToken: null },
+        select: { refreshToken: true },
+      });
+      if (refreshToken) {
+        throw new InternalServerErrorException(
+          "Failed delete user's refresh token",
+        );
+      }
+
+      return {
+        ok: true,
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        error: {
+          code: '001',
+          message: e?.message ?? e,
+        },
+      };
+    }
   }
 
   async me(token: string) {

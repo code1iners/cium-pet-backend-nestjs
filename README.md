@@ -5,6 +5,7 @@ This is a simple pet helpfully application powered by Nest JS.
 ## How to run?
 
 - `npm install`
+- `npm run db:connect`
 - `npm run start:dev`
 
 ## Services.
@@ -15,7 +16,7 @@ This is a simple pet helpfully application powered by Nest JS.
   - [x] Login.
   - [x] JWT access token.
   - [x] JWT refresh token.
-  - [ ] Logout.
+  - [x] Logout.
 
 - ### Users.
 

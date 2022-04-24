@@ -45,7 +45,10 @@ export class AuthController {
   ) {
     const { email, password } = authLoginDto;
 
-    const { ok, error, data } = await this.authService.login(email, password);
+    const { ok, error, data } = await this.authService.loginUser(
+      email,
+      password,
+    );
     if (!ok) {
       switch (error.code) {
         case '001':
@@ -69,6 +72,21 @@ export class AuthController {
     return response.status(200).json({
       ok: true,
       data,
+    });
+  }
+
+  @Post('logout')
+  async logout(@Req() request: Request, @Res() response: Response) {
+    const { id } = request.session.loggedInUser;
+    const { ok, error } = await this.authService.logoutUser(id);
+    if (!ok) {
+      throw new InternalServerErrorException(error);
+    }
+
+    request.session.destroy(() => console.info('Session destroyed!'));
+
+    return response.status(200).json({
+      ok: true,
     });
   }
 
