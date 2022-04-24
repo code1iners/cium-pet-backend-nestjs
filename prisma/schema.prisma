@@ -13,16 +13,17 @@ datasource db {
 }
 
 model User {
-  id         Int        @id @default(autoincrement())
-  email      String     @unique
-  username   String     @unique
-  password   String
-  joinMethod JoinMethod @default(OTHERS)
-  avatar     String?
-  gender     Gender?
-  products   Product[]
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
+  username     String     @unique
+  password     String
+  joinMethod   JoinMethod @default(OTHERS)
+  avatar       String?
+  gender       Gender?
+  products     Product[]
+  refreshToken String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 enum Gender {

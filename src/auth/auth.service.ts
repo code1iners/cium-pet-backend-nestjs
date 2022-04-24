@@ -1,14 +1,8 @@
-import {
-  ConflictException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { lastValueFrom, map } from 'rxjs';
-import { LOGIN_QUERY, ME_QUERY } from '@/queries/auth.queries';
 import { AuthJoinDto } from '@/auth/dtos/auth-join.dto';
 import { PrismaService } from '@/libs/prisma.service';
-import { JoinMethod, User } from '@prisma/client';
+import { JoinMethod } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 @Injectable()
@@ -119,37 +113,41 @@ export class AuthService {
     delete foundUser.password;
 
     // Create access token.
-    const accessToken = jwt.sign({ id: foundUser.id }, process.env.SECRET_KEY);
+    const accessToken = jwt.sign({ id: foundUser.id }, process.env.SECRET_KEY, {
+      expiresIn: '1h',
+    });
+
+    // Create refresh token.
+    const refreshToken = jwt.sign({}, process.env.SECRET_KEY, {
+      expiresIn: '14d',
+    });
+
+    // Update user refresh token.
+    try {
+      await this.prisma.user.update({
+        where: { id: foundUser.id },
+        data: { refreshToken },
+      });
+    } catch (e) {
+      return {
+        ok: false,
+        error: {
+          code: '004',
+          message: 'Failed update refresh token.',
+        },
+      };
+    }
 
     return {
       ok: true,
-      data: `Bearer ${accessToken}`,
+      data: {
+        user: foundUser,
+        accessToken: `Bearer ${accessToken}`,
+      },
     };
   }
 
   async me(token: string) {
-    try {
-      const {
-        data: { me },
-      } = await lastValueFrom(
-        this.httpService
-          .post(
-            process.env.AUTH_HOST_URL,
-            JSON.stringify({
-              query: ME_QUERY,
-            }),
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: token,
-              },
-            },
-          )
-          .pipe(map((res) => res.data)),
-      );
-      return me;
-    } catch (e) {
-      console.error('[me]', e);
-    }
+    // this.prisma.user.findUnique
   }
 }

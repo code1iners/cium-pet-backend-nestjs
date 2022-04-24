@@ -38,7 +38,11 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Res() response: Response, @Body() authLoginDto: AuthLoginDto) {
+  async login(
+    @Req() request: Request,
+    @Res() response: Response,
+    @Body() authLoginDto: AuthLoginDto,
+  ) {
     const { email, password } = authLoginDto;
 
     const { ok, error, data } = await this.authService.login(email, password);
@@ -54,6 +58,13 @@ export class AuthController {
           throw new InternalServerErrorException(error.message);
       }
     }
+
+    // Update session settings.
+    request.session['loggedInUser'] = data.user;
+    request.session.save();
+
+    // Remove sensitive fields.
+    delete data.user;
 
     return response.status(200).json({
       ok: true,
