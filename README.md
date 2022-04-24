@@ -11,8 +11,10 @@ This is a simple pet helpfully application powered by Nest JS.
 
 - ### Authorizations.
 
-  - [ ] Join.
-  - [ ] Login.
+  - [x] Join.
+  - [x] Login.
+  - [x] JWT access token.
+  - [x] JWT refresh token.
   - [ ] Logout.
 
 - ### Users.
