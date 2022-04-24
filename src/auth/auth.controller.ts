@@ -1,19 +1,44 @@
 import {
+  BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Get,
+  InternalServerErrorException,
   Post,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthLoginDto } from '@/auth/dtos/auth-login.dto';
 import { AuthService } from '@/auth/auth.service';
-import { lastValueFrom } from 'rxjs';
-import { Req, Res, Session } from '@nestjs/common';
+import { Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { AuthJoinDto } from '@/auth/dtos/auth-join.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('join')
+  async join(
+    @Req() request: Request,
+    @Res() response: Response,
+    @Body() authJoinDto: AuthJoinDto,
+  ) {
+    try {
+      const { ok, error, data } = await this.authService.createUser(
+        authJoinDto,
+      );
+      if (!ok) {
+        throw new ConflictException(error.message);
+      }
+
+      return response.status(201).json({
+        ok: true,
+        data,
+      });
+    } catch (e) {
+      throw new InternalServerErrorException(e?.message ?? e);
+    }
+  }
 
   @Post('login')
   async login(
@@ -23,41 +48,41 @@ export class AuthController {
   ) {
     try {
       const { email, password } = authLoginDto;
-      const { ok, token, error } = await this.authService.login(
-        email,
-        password,
-      );
+      // const { ok, token, error } = await this.authService.login(
+      //   email,
+      //   password,
+      // );
 
       // Is login failed?
-      if (!ok) {
-        request.session.destroy(() => console.info('Session destroyed!'));
-        return response.status(401).json({
-          ok: false,
-          error: error,
-        });
-      }
+      // if (!ok) {
+      //   request.session.destroy(() => console.info('Session destroyed!'));
+      //   return response.status(401).json({
+      //     ok: false,
+      //     error: error,
+      //   });
+      // }
 
       // Getting me data.
-      const loggedInUser = await this.authService.me(token);
-      if (!loggedInUser) {
-        request.session.destroy(() => console.info('Session destroyed!'));
-        return response.status(400).json({
-          ok: false,
-          error: 'Failed getting me.',
-        });
-      }
+      // const loggedInUser = await this.authService.me(token);
+      // if (!loggedInUser) {
+      //   request.session.destroy(() => console.info('Session destroyed!'));
+      //   return response.status(400).json({
+      //     ok: false,
+      //     error: 'Failed getting me.',
+      //   });
+      // }
 
       // Save me data into session.
-      request.session['loggedInUser'] = loggedInUser;
-      request.session.save();
+      // request.session['loggedInUser'] = loggedInUser;
+      // request.session.save();
 
-      response.status(200).json({
+      return response.status(200).json({
         ok: true,
       });
     } catch (e) {
       console.error('[login]', e);
-      request.session.destroy(() => console.info('Session destroyed!'));
-      response.status(500).json({
+      // request.session.destroy(() => console.info('Session destroyed!'));
+      return response.json({
         ok: false,
         error: e,
       });

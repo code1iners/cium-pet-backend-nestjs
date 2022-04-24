@@ -16,18 +16,27 @@ export class ProductsService {
   }
 
   async createProduct(product: ProductCreateDto): Promise<Product> {
-    const { name, description, price, image, option, category } = product;
-    return this.client.product.create({
-      data: {
-        name,
-        description,
-        price,
-        image,
-        option,
-        category,
-        userId: 0,
-      },
-    });
+    const { name, description, price, image, option, category, sellerId } =
+      product;
+    try {
+      return this.client.product.create({
+        data: {
+          name,
+          description,
+          price,
+          image,
+          option,
+          category,
+          seller: {
+            connect: {
+              id: sellerId,
+            },
+          },
+        },
+      });
+    } catch (e) {
+      console.error('[createProduct]', e?.message ?? e);
+    }
   }
 
   async deleteProductById(id: number): Promise<boolean> {

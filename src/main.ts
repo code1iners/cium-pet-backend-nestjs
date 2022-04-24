@@ -18,7 +18,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.use(
     session({
-      name: 'CIUM_PET_BACKEND_SESSION_ID',
+      name: 'CIUM_PET_SESSION_ID',
       secret: process.env.SECRET_KEY + '',
       resave: false,
       saveUninitialized: false,
@@ -29,6 +29,6 @@ async function bootstrap() {
   );
   const prismaService = app.get(PrismaService);
   await prismaService.enableShutdownHooks(app);
-  await app.listen(3001);
+  await app.listen(process.env.PORT || 3000);
 }
 bootstrap();
