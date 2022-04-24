@@ -5,6 +5,7 @@ import {
   Controller,
   Get,
   InternalServerErrorException,
+  NotFoundException,
   Post,
 } from '@nestjs/common';
 import { AuthLoginDto } from '@/auth/dtos/auth-login.dto';
@@ -46,47 +47,26 @@ export class AuthController {
     @Res() response: Response,
     @Body() authLoginDto: AuthLoginDto,
   ) {
-    try {
-      const { email, password } = authLoginDto;
-      // const { ok, token, error } = await this.authService.login(
-      //   email,
-      //   password,
-      // );
+    const { email, password } = authLoginDto;
 
-      // Is login failed?
-      // if (!ok) {
-      //   request.session.destroy(() => console.info('Session destroyed!'));
-      //   return response.status(401).json({
-      //     ok: false,
-      //     error: error,
-      //   });
-      // }
-
-      // Getting me data.
-      // const loggedInUser = await this.authService.me(token);
-      // if (!loggedInUser) {
-      //   request.session.destroy(() => console.info('Session destroyed!'));
-      //   return response.status(400).json({
-      //     ok: false,
-      //     error: 'Failed getting me.',
-      //   });
-      // }
-
-      // Save me data into session.
-      // request.session['loggedInUser'] = loggedInUser;
-      // request.session.save();
-
-      return response.status(200).json({
-        ok: true,
-      });
-    } catch (e) {
-      console.error('[login]', e);
-      // request.session.destroy(() => console.info('Session destroyed!'));
-      return response.json({
-        ok: false,
-        error: e,
-      });
+    const { ok, error, data } = await this.authService.login(email, password);
+    if (!ok) {
+      switch (error.code) {
+        case '001':
+          throw new InternalServerErrorException(error.message);
+        case '002':
+          throw new NotFoundException(error.message);
+        case '003':
+          throw new BadRequestException(error.message);
+        default:
+          throw new InternalServerErrorException(error.message);
+      }
     }
+
+    return response.status(200).json({
+      ok: true,
+      data,
+    });
   }
 
   @Get('me')

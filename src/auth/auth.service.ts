@@ -8,8 +8,9 @@ import { lastValueFrom, map } from 'rxjs';
 import { LOGIN_QUERY, ME_QUERY } from '@/queries/auth.queries';
 import { AuthJoinDto } from '@/auth/dtos/auth-join.dto';
 import { PrismaService } from '@/libs/prisma.service';
-import { JoinMethod } from '@prisma/client';
+import { JoinMethod, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
 @Injectable()
 export class AuthService {
   constructor(
@@ -69,15 +70,61 @@ export class AuthService {
   }
 
   async login(email: string, password: string) {
+    let foundUser = undefined;
     try {
-      return null;
+      foundUser = await this.prisma.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          avatar: true,
+          gender: true,
+          password: true,
+        },
+      });
     } catch (e) {
-      console.error('[login]', e?.message);
       return {
         ok: false,
-        error: e,
+        error: {
+          code: '001',
+          message: 'Failed find the user.',
+        },
       };
     }
+
+    if (!foundUser) {
+      return {
+        ok: false,
+        error: {
+          code: '002',
+          message: 'The user does not found.',
+        },
+      };
+    }
+
+    // Check password verify.
+    const isPasswordValid = await bcrypt.compare(password, foundUser.password);
+    if (!isPasswordValid) {
+      return {
+        ok: false,
+        error: {
+          code: '003',
+          message: 'Incorrect password.',
+        },
+      };
+    }
+
+    // Delete sensitive fields.
+    delete foundUser.password;
+
+    // Create access token.
+    const accessToken = jwt.sign({ id: foundUser.id }, process.env.SECRET_KEY);
+
+    return {
+      ok: true,
+      data: `Bearer ${accessToken}`,
+    };
   }
 
   async me(token: string) {
