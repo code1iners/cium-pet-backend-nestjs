@@ -7,9 +7,22 @@ import { ProductsModule } from '@/products/products.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersController } from './users/users.controller';
 import { UsersModule } from './users/users.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [ProductsModule, AuthModule, UsersModule],
+  imports: [
+    ConfigModule.forRoot({
+      envFilePath:
+        process.env.NODE_ENV === 'production'
+          ? '.env.production'
+          : process.env.NODE_ENV === 'development'
+          ? '.env.development'
+          : '.env.local',
+    }),
+    ProductsModule,
+    AuthModule,
+    UsersModule,
+  ],
   controllers: [AppController, UsersController],
   providers: [AppService],
 })
