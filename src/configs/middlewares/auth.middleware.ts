@@ -7,13 +7,17 @@ import {
 import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { prisma } from '@libs/client';
+import useJwt from '@/libs/useJwt';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: (error?: any) => void) {
-    const isLocalEnvironment = process.env.NODE_ENV === 'local';
+    const { createAccessToken, createRefreshToken, verifyToken } = useJwt();
     // Is local environ
+    const isLocalEnvironment = process.env.NODE_ENV === 'local';
     // if (isLocalEnvironment) return next();
+
+    /*** Access & Refresh token start ***/
 
     // Has access token?
     const { authorization } = req.headers;
@@ -31,31 +35,18 @@ export class AuthMiddleware implements NestMiddleware {
     });
 
     const realAccessToken = authorization.split(' ')[1];
-    try {
-      verifiedAccessToken = jwt.verify(realAccessToken, process.env.SECRET_KEY);
-    } catch (e) {
-      verifiedAccessToken = null;
-    }
-    try {
-      verifiedRefreshToken = jwt.verify(
-        userRefreshToken,
-        process.env.SECRET_KEY,
-      );
-    } catch (e) {
-      verifiedRefreshToken = null;
-    }
+    verifiedAccessToken = verifyToken(realAccessToken);
+    verifiedRefreshToken = verifyToken(userRefreshToken);
 
     if (verifiedAccessToken) {
       // Access token is valid?
       if (!verifiedRefreshToken) {
         // Refresh token is invalid?
-        const newRefreshToken = jwt.sign({}, process.env.SECRET_KEY, {
-          expiresIn: '14d',
-        });
         try {
+          // Update refresh token by new one.
           await prisma.user.update({
             where: { id: loggedInUserId },
-            data: { refreshToken: newRefreshToken },
+            data: { refreshToken: createRefreshToken() },
           });
         } catch (e) {
           throw new InternalServerErrorException("Failed user's refresh token");
@@ -65,21 +56,17 @@ export class AuthMiddleware implements NestMiddleware {
       // Access token is invalid?
       if (verifiedRefreshToken) {
         // Refresh token is valid?
-        const newAccessToken = jwt.sign(
-          { id: loggedInUserId },
-          process.env.SECRET_KEY,
-          {
-            expiresIn: '1h',
-          },
+        res.setHeader(
+          'new-authorization',
+          createAccessToken({ id: loggedInUserId }),
         );
-        res.setHeader('new-authorization', newAccessToken);
       } else {
         // Refresh token is invalid?
         throw new UnauthorizedException(`The user's access token is invalid.`);
       }
     }
 
-    prisma.$disconnect();
+    /*** Access & Refresh token end ***/
 
     next();
   }
