@@ -5,7 +5,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import * as jwt from 'jsonwebtoken';
 import { prisma } from '@libs/client';
 import useJwt from '@/libs/useJwt';
 

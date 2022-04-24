@@ -1,5 +1,4 @@
 import * as jwt from 'jsonwebtoken';
-import { prisma } from '@libs/client';
 
 const useJwt = () => {
   const verifyToken = (token: string) => {
