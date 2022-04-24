@@ -20,6 +20,7 @@ This is a simple pet helpfully application powered by Nest JS.
 
 - ### Users.
 
+  - [ ] Me.
   - [ ] Profile modify.
 
 - ### Products.
