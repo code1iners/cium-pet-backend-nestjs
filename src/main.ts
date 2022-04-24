@@ -4,6 +4,13 @@ import { AppModule } from '@/app.module';
 import { PrismaService } from '@libs/prisma.service';
 import { LoggingInterceptor } from '@configs/interceptors/logging.interceptor';
 import * as session from 'express-session';
+import { User } from '@prisma/client';
+
+declare module 'express-session' {
+  interface SessionData {
+    loggedInUser: User;
+  }
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

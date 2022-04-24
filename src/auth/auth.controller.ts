@@ -28,6 +28,7 @@ export class AuthController {
         password,
       );
 
+      // Is login failed?
       if (!ok) {
         request.session.destroy(() => console.info('Session destroyed!'));
         return response.status(401).json({
@@ -36,7 +37,18 @@ export class AuthController {
         });
       }
 
-      request.session['access_token'] = token;
+      // Getting me data.
+      const loggedInUser = await this.authService.me(token);
+      if (!loggedInUser) {
+        request.session.destroy(() => console.info('Session destroyed!'));
+        return response.status(400).json({
+          ok: false,
+          error: 'Failed getting me.',
+        });
+      }
+
+      // Save me data into session.
+      request.session['loggedInUser'] = loggedInUser;
       request.session.save();
 
       response.status(200).json({
@@ -55,8 +67,6 @@ export class AuthController {
   @Get('me')
   async me(@Req() request: Request, @Res() response: Response) {
     try {
-      console.log(request.session);
-
       const token = request.session['access_token'];
 
       if (!token) {
