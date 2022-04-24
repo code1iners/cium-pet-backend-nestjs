@@ -19,11 +19,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('join')
-  async join(
-    @Req() request: Request,
-    @Res() response: Response,
-    @Body() authJoinDto: AuthJoinDto,
-  ) {
+  async join(@Res() response: Response, @Body() authJoinDto: AuthJoinDto) {
     try {
       const { ok, error, data } = await this.authService.createUser(
         authJoinDto,
@@ -42,11 +38,7 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(
-    @Req() request: Request,
-    @Res() response: Response,
-    @Body() authLoginDto: AuthLoginDto,
-  ) {
+  async login(@Res() response: Response, @Body() authLoginDto: AuthLoginDto) {
     const { email, password } = authLoginDto;
 
     const { ok, error, data } = await this.authService.login(email, password);
@@ -71,39 +63,8 @@ export class AuthController {
 
   @Get('me')
   async me(@Req() request: Request, @Res() response: Response) {
-    try {
-      const token = request.session['access_token'];
-
-      if (!token) {
-        return response.status(401).json({
-          ok: true,
-          error: 'Access token does not exist.',
-        });
-      }
-
-      // Getting me data.
-      const me = await this.authService.me(token);
-      if (!me) {
-        request.session.destroy(() => console.info('Session destroyed!'));
-        return response.status(400).json({
-          ok: false,
-          error: 'Failed getting me.',
-        });
-      }
-
-      request.session['me'] = me;
-      request.session.save();
-
-      return response.status(200).json({
-        ok: true,
-        me,
-      });
-    } catch (e) {
-      console.error('[me]', e);
-      return response.status(500).json({
-        ok: false,
-        error: e?.message,
-      });
-    }
+    return response.status(200).json({
+      ok: true,
+    });
   }
 }

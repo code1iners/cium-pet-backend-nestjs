@@ -35,10 +35,16 @@ export class AppModule {
 
     consumer
       .apply(AuthMiddleware)
-      .exclude({
-        path: 'auth/(.*)',
-        method: RequestMethod.ALL,
-      })
+      .exclude(
+        {
+          path: 'auth/join',
+          method: RequestMethod.POST,
+        },
+        {
+          path: 'auth/login',
+          method: RequestMethod.POST,
+        },
+      )
       .forRoutes({
         path: '*',
         method: RequestMethod.ALL,
