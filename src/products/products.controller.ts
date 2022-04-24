@@ -1,5 +1,5 @@
-import { ProductUpdateDto } from '@/products/dto/product-update.dto';
-import { ProductCreateDto } from '@/products/dto/product-create.dto';
+import { ProductUpdateDto } from '@/products/dtos/product-update.dto';
+import { ProductCreateDto } from '@/products/dtos/product-create.dto';
 import { ProductsService } from '@/products/products.service';
 import {
   Body,
@@ -11,7 +11,7 @@ import {
   Post,
 } from '@nestjs/common';
 
-@Controller('v1/products')
+@Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
