@@ -23,15 +23,23 @@ model User {
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
+  id          Int             @id @default(autoincrement())
   name        String
   description String
   price       Int
   image       String
   option      String
-  category    String
-  seller      User     @relation(fields: [userId], references: [id])
+  category    ProductCategory @default(ETC)
+  seller      User            @relation(fields: [userId], references: [id])
   userId      Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+enum ProductCategory {
+  FOOD
+  CLOTHES
+  TOY
+  SERVICE
+  ETC
 }

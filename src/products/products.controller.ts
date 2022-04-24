@@ -1,5 +1,15 @@
-import { ProductsService } from './products.service';
-import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { ProductUpdateDto } from '@/products/dto/product-update.dto';
+import { ProductCreateDto } from '@/products/dto/product-create.dto';
+import { ProductsService } from '@/products/products.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 
 @Controller('v1/products')
 export class ProductsController {
@@ -7,26 +17,26 @@ export class ProductsController {
 
   @Get()
   list() {
-    return [];
+    return this.productsService.getProducts();
   }
 
   @Get('/:id')
   retrieve(@Param('id') id: number) {
-    return `Will be retrieve a product item ${id}`;
+    return this.productsService.getProductById(id);
   }
 
   @Post()
-  create() {
-    return 'Will be create a product.';
+  create(@Body() product: ProductCreateDto) {
+    return this.productsService.createProduct(product);
   }
 
   @Patch('/:id')
-  update(@Param('id') id: number) {
-    return `Will be update a product item. ${id}`;
+  update(@Param('id') id: number, @Body() product: ProductUpdateDto) {
+    return this.productsService.updateProductById(id, product);
   }
 
   @Delete('/:id')
   delete(@Param('id') id: number) {
-    return `Will be delete a product item. ${id}`;
+    return this.productsService.deleteProductById(id);
   }
 }
